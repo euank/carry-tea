@@ -22,12 +22,12 @@ fn color(r: &Ray) -> image::Rgb<u8> {
 }
 
 fn main() {
-    let width = 200;
-    let height = 100;
+    let width = 640;
+    let height = 480;
 
     let ul = Vec3::new(-2.0, 1.0, -1.0);
-    let horiz = Vec3::new(4f64, 0f64, 0f64);
-    let vert = Vec3::new(0.0, 2.0, 0.0);
+    let horiz = Vec3::new(4.0, 0.0, 0.0);
+    let vert = Vec3::new(0.0, 4.0, 0.0);
     let origin = Vec3::new(0.0, 0.0, 0.0);
 
     let mut img = RgbImage::new(width, height);
