@@ -10,7 +10,7 @@ use ray::Ray;
 
 type Vec3 = TVec3<f64>;
 
-fn color(r: &Ray) -> image::Rgb<u8> {
+fn color(r: &Ray) -> Rgb<u8> {
     let norm = r.dir.normalize();
     let t = 0.5 * (norm.y + 1.0);
     let v3 = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
@@ -18,7 +18,7 @@ fn color(r: &Ray) -> image::Rgb<u8> {
     let conv = |v: f64| -> u8 {
         (255.0 * v).clamp(0.0, 255.0) as u8
     };
-    image::Rgb([conv(v3.x), conv(v3.y), conv(v3.z)])
+    Rgb([conv(v3.x), conv(v3.y), conv(v3.z)])
 }
 
 fn main() {
@@ -36,7 +36,7 @@ fn main() {
         objs: vec![Box::new(scene::Sphere{
             center: Vec3::new(0.0, 0.0, -1.0),
             radius: 0.5,
-            color: image::Rgb([0, 255, 0]),
+            color: Rgb([0, 255, 0]),
         })],
     };
 
