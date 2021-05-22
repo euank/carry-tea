@@ -1,11 +1,45 @@
+use image::RgbImage;
+
 use crate::ray::Ray;
 
 type Vec3 = crate::glm::TVec3<f64>;
 
 // A Scene contains objects
 pub(crate) struct Scene {
-    // TODO: camera
+    pub width: u32,
+    pub height: u32,
+    pub camera: Camera,
     pub(crate) objs: Vec<Box<dyn Object>>,
+}
+
+impl Scene {
+    pub fn render(&self) -> image::RgbImage {
+        let width = self.width;
+        let height = self.height;
+
+        let mut img = RgbImage::new(width, height);
+        for y in (0..height).rev() {
+            for x in 0..width {
+                let wx = x as f64 / (width-1) as f64 * self.camera.w;
+                let wy = y as f64 / (height-1) as f64 * self.camera.h;
+
+                let pix = Vec3::new(wx, wy, 0.0);
+                let dir = (pix - self.camera.dir).normalize();
+                let r = Ray::new(self.camera.pos, dir);
+
+                let px = r.trace(&self);
+                img.put_pixel(x, y, px);
+            }
+        }
+        img
+    }
+}
+
+pub(crate) struct Camera {
+    pub pos: Vec3,
+    pub dir: Vec3,
+    pub w: f64,
+    pub h: f64,
 }
 
 // Objects are objects in our scene which may be hit by rays
@@ -31,8 +65,16 @@ impl Object for Sphere {
         if disc < 0.0 {
             return None;
         }
-        let t = (-b - disc.sqrt()) / (2.0 * a);
-        let norm: Vec3 = (r.trace(t) - self.center).normalize();
+        let t0 = (-b - disc.sqrt()) / (2.0 * a);
+        let t1 = (-b + disc.sqrt()) / (2.0 * a);
+        let t = if t0 < t1 && t0 > 0.00001 {
+            t0
+        } else {
+            t1
+        };
+        let hit = r.origin + t * r.dir;
+
+        let norm = 1.0 / self.radius * (hit - self.center);
         let n2 = 0.5 * (norm + Vec3::new(1.0, 1.0, 1.0));
         // lighter color the worse the normal just to see normals
         return Some(image::Rgb([

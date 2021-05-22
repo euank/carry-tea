@@ -1,4 +1,4 @@
-use image::{RgbImage, Rgb};
+use image::Rgb;
 use nalgebra_glm as glm;
 
 use glm::TVec3;
@@ -6,59 +6,26 @@ use glm::TVec3;
 mod ray;
 mod scene;
 
-use ray::Ray;
-
 type Vec3 = TVec3<f64>;
 
-fn color(r: &Ray) -> Rgb<u8> {
-    let norm = r.dir.normalize();
-    let t = 0.5 * (norm.y + 1.0);
-    let v3 = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
-    // 0-1.0 f64 -> 0-255 u8
-    let conv = |v: f64| -> u8 {
-        (255.0 * v).clamp(0.0, 255.0) as u8
-    };
-    Rgb([conv(v3.x), conv(v3.y), conv(v3.z)])
-}
-
 fn main() {
-    let width = 640;
-    let height = 480;
-
-    let ul = Vec3::new(-2.0, 1.0, -1.0);
-    let horiz = Vec3::new(4.0, 0.0, 0.0);
-    let vert = Vec3::new(0.0, 4.0, 0.0);
-    let origin = Vec3::new(0.0, 0.0, 0.0);
-
-    let mut img = RgbImage::new(width, height);
-
     let scene = scene::Scene{
+        width: 640,
+        height: 480,
+        camera: scene::Camera{
+            dir: Vec3::new(0.0, 0.0, -1.0),
+            pos: Vec3::new(4.0, 3.0, 6.0),
+            w: 8.0,
+            h: 6.0,
+        },
         objs: vec![Box::new(scene::Sphere{
-            center: Vec3::new(0.0, 0.0, -1.0),
-            radius: 0.5,
+            center: Vec3::new(2.0, 2.0, -2.0),
+            radius: 1.3,
             color: Rgb([0, 255, 0]),
         })],
     };
 
-    for x in 0..width {
-        for y in 0..height {
-            let u = x as f64 / width as f64;
-            let v = y as f64 / width as f64;
-            let r = Ray::new(origin, ul + u * horiz - v * vert);
-            // background color
-            let mut c = color(&r);
-            // object color if we hit an object
-            for obj in &scene.objs {
-                match obj.is_hit(&r) {
-                    Some(hit_c) => {
-                        c = hit_c;
-                    },
-                    None => {},
-                }
-            }
-            img.put_pixel(x, y, c);
-        }
-    }
+    let img = scene.render();
 
     img.save("out.png").unwrap();
 }

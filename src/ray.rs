@@ -1,4 +1,5 @@
 use nalgebra_glm as glm;
+use image::Rgb;
 
 use glm::TVec3;
 
@@ -14,7 +15,27 @@ impl Ray {
         Ray{origin, dir}
     }
 
-    pub fn trace(&self, t: f64) -> Vec3 {
-        self.origin + self.dir * t
+    pub fn trace(&self, scene: &crate::scene::Scene) -> Rgb<u8> {
+        for obj in &scene.objs {
+            match obj.is_hit(&self) {
+                Some(hit_c) => {
+                    return hit_c;
+                },
+                None => {},
+            }
+        }
+        // background color
+        color(&self)
     }
+}
+
+fn color(r: &Ray) -> Rgb<u8> {
+    let norm = r.dir.normalize();
+    let t = 0.5 * (norm.y + 1.0);
+    let v3 = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
+    // 0-1.0 f64 -> 0-255 u8
+    let conv = |v: f64| -> u8 {
+        (255.0 * v).clamp(0.0, 255.0) as u8
+    };
+    Rgb([conv(v3.x), conv(v3.y), conv(v3.z)])
 }
