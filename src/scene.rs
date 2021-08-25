@@ -118,7 +118,7 @@ impl Object for Sphere {
 
         let norm = 1.0 / self.radius * (hit - self.center);
         Some(RayIntersection{
-            dist: t,
+            dist: t.abs(),
             norm,
             point: hit,
             obj: self,
