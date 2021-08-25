@@ -1,4 +1,5 @@
 use image::RgbImage;
+use image::Rgb;
 
 use crate::ray::Ray;
 
@@ -31,12 +32,36 @@ impl Scene {
                 let pix = Vec3::new(wx, wy, 0.0);
                 let dir = (pix - self.camera.dir).normalize();
                 let r = Ray::new(self.camera.pos, dir);
-
-                let px = r.trace(&self);
+                let px = self.trace(&r);
                 img.put_pixel(x, y, px);
             }
         }
         img
+    }
+
+    fn trace(&self, r: &Ray) -> Rgb<u8> {
+        match self.closest_obj(r) {
+            Some(inter) => {
+                // attenuate the color based on the normal to show normals
+                let objcolor = inter.obj.color();
+                let n2 = 0.5 * (inter.norm + Vec3::new(1.0, 1.0, 1.0));
+                return image::Rgb([
+                        (objcolor[0] as f64 * n2.x) as u8,
+                        (objcolor[1] as f64 * n2.y) as u8,
+                        (objcolor[2] as f64 * n2.z) as u8,
+                ])
+            },
+            None => {},
+        }
+        // background color
+        color(r)
+    }
+
+    fn closest_obj(&self, r: &Ray) -> Option<RayIntersection> {
+        self.objs
+            .iter()
+            .filter_map(|o| o.intersects(r))
+            .min_by(|x, y| x.dist.partial_cmp(&y.dist).unwrap())
     }
 }
 
@@ -47,10 +72,22 @@ pub(crate) struct Camera {
     pub h: f64,
 }
 
+pub(crate) struct RayIntersection<'a> {
+    // normal to the ray that hit this.
+    norm: Vec3,
+    // Distance from the ray
+    dist: f64,
+    // Point at which it intersected the object
+    point: Vec3,
+    // The object hit
+    obj: &'a dyn Object,
+}
+
 // Objects are objects in our scene which may be hit by rays
 pub(crate) trait Object {
-    // Does this ray hit this object? If it does, what color does it produce?
-    fn is_hit(&self, r: &Ray) -> Option<image::Rgb<u8>>;
+    // Does this ray hit this object? If it does, at what distance does it intersect?
+    fn intersects(&self, r: &Ray) -> Option<RayIntersection>;
+    fn color(&self) -> image::Rgb<u8>;
 }
 
 pub(crate) struct Sphere {
@@ -60,7 +97,7 @@ pub(crate) struct Sphere {
 }
 
 impl Object for Sphere {
-    fn is_hit(&self, r: &Ray) -> Option<image::Rgb<u8>> {
+    fn intersects(&self, r: &Ray) -> Option<RayIntersection> {
         // https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
         let oc = r.origin - self.center;
         let a = r.dir.dot(&r.dir);
@@ -80,12 +117,26 @@ impl Object for Sphere {
         let hit = r.origin + t * r.dir;
 
         let norm = 1.0 / self.radius * (hit - self.center);
-        let n2 = 0.5 * (norm + Vec3::new(1.0, 1.0, 1.0));
-        // lighter color the worse the normal just to see normals
-        return Some(image::Rgb([
-            (self.color[0] as f64 * n2.x) as u8,
-            (self.color[1] as f64 * n2.y) as u8,
-            (self.color[2] as f64 * n2.z) as u8,
-        ]))
+        Some(RayIntersection{
+            dist: t,
+            norm,
+            point: hit,
+            obj: self,
+        })
     }
+
+    fn color(&self) -> Rgb<u8> {
+        self.color
+    }
+}
+
+fn color(r: &Ray) -> Rgb<u8> {
+    let norm = r.dir.normalize();
+    let t = 0.5 * (norm.y + 1.0);
+    let v3 = (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
+    // 0-1.0 f64 -> 0-255 u8
+    let conv = |v: f64| -> u8 {
+        (255.0 * v).clamp(0.0, 255.0) as u8
+    };
+    Rgb([conv(v3.x), conv(v3.y), conv(v3.z)])
 }
