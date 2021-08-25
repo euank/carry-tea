@@ -14,12 +14,12 @@ fn main() {
         height: 480,
         camera: scene::Camera{
             dir: Vec3::new(0.0, 0.0, -1.0),
-            pos: Vec3::new(4.0, 3.0, 6.0),
+            pos: Vec3::new(0.0, 0.0, 0.0),
             w: 8.0,
             h: 6.0,
         },
         objs: vec![Box::new(scene::Sphere{
-            center: Vec3::new(2.0, 2.0, -2.0),
+            center: Vec3::new(0.0, 0.0, -3.0),
             radius: 1.3,
             color: Rgb([0, 255, 0]),
         })],
