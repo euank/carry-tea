@@ -5,6 +5,10 @@ use glm::TVec3;
 
 mod ray;
 mod scene;
+mod sphere;
+mod triangle;
+use sphere::Sphere;
+use triangle::Triangle;
 
 type Vec3 = TVec3<f64>;
 
@@ -18,16 +22,21 @@ fn main() {
             h: 6.0,
         },
         objs: vec![
-            Box::new(scene::Sphere{
-                center: Vec3::new(6.0, 4.0, -2.0),
+            Box::new(Sphere{
+                center: Vec3::new(6.0, 4.0, -3.0),
                 radius: 2.0,
                 color: Rgb([255, 0, 0]),
             }),
-            Box::new(scene::Sphere{
-                center: Vec3::new(2.0, 2.0, -2.0),
+            Box::new(Sphere{
+                center: Vec3::new(2.0, 2.0, -3.0),
                 radius: 1.3,
                 color: Rgb([0, 0, 255]),
             }),
+            Box::new(Triangle::new(
+                [Vec3::new(2.0, 2.0, -2.0), Vec3::new(6.0, 4.0, -2.0), Vec3::new(6.0, 2.0, -2.0)],
+                Rgb([0, 255, 0]),
+                true,
+            )),
         ],
     };
 
