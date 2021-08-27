@@ -23,17 +23,15 @@ impl Scene {
             for x in 0..width {
                 let wx = x as f64 / (width-1) as f64 * self.camera.w;
                 let wy = y as f64 / (height-1) as f64 * self.camera.h;
-                // Shift the camera from being in the upper left to being in the center
-                // i.e. a camera at `0, 0, 0` width a world width of 5 should go from `(-2.5,
-                // +2.5)` since we expect a camera to be the "center" of the viewport.
-                let wx = wx - (self.camera.w / 2.0);
-                let wy = wy - (self.camera.h / 2.0);
 
                 let pix = Vec3::new(wx, wy, 0.0);
-                let dir = (pix - self.camera.dir).normalize();
-                let r = Ray::new(self.camera.pos, dir);
+                let dir = (pix - self.camera.viewpoint).normalize();
+
+                let r = Ray::new(self.camera.viewpoint, dir);
                 let px = self.trace(&r);
-                img.put_pixel(x, y, px);
+                // invert since our world coordinates are the normal graph coordinates of the lower
+                // left being (0, 0), but img.put_pixel uses the upper left as (0, 0)
+                img.put_pixel(x, height - 1 - y, px);
             }
         }
         img
@@ -66,8 +64,7 @@ impl Scene {
 }
 
 pub(crate) struct Camera {
-    pub pos: Vec3,
-    pub dir: Vec3,
+    pub viewpoint: Vec3,
     pub w: f64,
     pub h: f64,
 }

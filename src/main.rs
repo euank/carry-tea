@@ -13,28 +13,19 @@ fn main() {
         width: 640,
         height: 480,
         camera: scene::Camera{
-            dir: Vec3::new(0.0, 0.0, -1.0),
-            pos: Vec3::new(0.0, 0.0, 0.0),
+            viewpoint: Vec3::new(4.0, 3.0, 6.0),
             w: 8.0,
             h: 6.0,
         },
         objs: vec![
-            // middle sphere
             Box::new(scene::Sphere{
-                center: Vec3::new(0.0, 0.0, -10.0),
-                radius: 7.3,
-                color: Rgb([0, 255, 0]),
-            }),
-            // back sphere
-            Box::new(scene::Sphere{
-                center: Vec3::new(10.0, 3.0, -20.0),
-                radius: 10.5,
+                center: Vec3::new(6.0, 4.0, -2.0),
+                radius: 2.0,
                 color: Rgb([255, 0, 0]),
             }),
-            // small front one
             Box::new(scene::Sphere{
-                center: Vec3::new(-3.0, 2.0, -3.0),
-                radius: 1.4,
+                center: Vec3::new(2.0, 2.0, -2.0),
+                radius: 1.3,
                 color: Rgb([0, 0, 255]),
             }),
         ],
