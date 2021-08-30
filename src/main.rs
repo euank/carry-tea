@@ -1,18 +1,22 @@
 use image::Rgb;
 use nalgebra_glm as glm;
-
 use glm::TVec3;
+use anyhow::Result;
+
+use std::path::Path;
 
 mod ray;
 mod scene;
 mod sphere;
 mod triangle;
+mod stl_model;
 use sphere::Sphere;
 use triangle::Triangle;
+use stl_model::StlModel;
 
 type Vec3 = TVec3<f64>;
 
-fn main() {
+fn main() -> Result<()> {
     let scene = scene::Scene{
         width: 640,
         height: 480,
@@ -37,10 +41,12 @@ fn main() {
                 Rgb([0, 255, 0]),
                 true,
             )),
+            Box::new(StlModel::new(Path::new("./models/test.stl"), Rgb([0, 0, 255]))?),
         ],
     };
 
     let img = scene.render();
 
     img.save("out.png").unwrap();
+    Ok(())
 }
